@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\NewsArticle;
 use Illuminate\Support\Facades\Auth;
 use GuzzleHttp\Client;
 use Laravel\Passport\Client as OClient;
@@ -41,8 +42,8 @@ class AuthController extends Controller
       $oClient = OClient::where('password_client', 1)->first();
       $tokens = $this->getTokens($oClient, $request->email, $request->password);
 
-      $user->access_token = $tokens->getData()->access_token;
-      $user->refresh_token = $tokens->getData()->refresh_token;
+      $user->access_token = $tokens['access_token'];
+      $user->refresh_token = $tokens['refresh_token'];
 
       return response()->json([
         "user" => $user
@@ -79,9 +80,17 @@ class AuthController extends Controller
       ], 200);
     }
 
-    public function index() {
+    public function index(Request $request) {
       return response()->json([
             "user" => $request->user()
+      ], 200);
+    }
+
+    public function news() {
+      $news = NewsArticle::all();
+
+      return response()->json([
+            "news" => $news
       ], 200);
     }
 
@@ -89,7 +98,7 @@ class AuthController extends Controller
         $oClient = OClient::where('password_client', 1)->first();
         $http = new Client;
         
-        $response = $http->request('POST', 'http://127.0.0.1:8001/oauth/token', [
+        $response = $http->request('POST', 'http://127.0.0.1:8888/oauth/token', [
             'form_params' => [
                 'grant_type' => 'password',
                 'client_id' => $oClient->id,
@@ -101,14 +110,14 @@ class AuthController extends Controller
         ]);
 
         $result = json_decode((string) $response->getBody(), true);
-        return response()->json($result, 200);
+        return $result;
     }
 
     private function getRefreshedToken(OClient $oClient, $refresh_token){
         $oClient = OClient::where('password_client', 1)->first();
         $http = new Client;
 
-        $response = $http->request('POST', url('/').'/oauth/token', [
+        $response = $http->request('POST', 'http://127.0.0.1:8888/oauth/token', [
             'form_params' => [
                 'grant_type' => 'refresh_token',
                 'refresh_token' => $refresh_token,

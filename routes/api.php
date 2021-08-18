@@ -30,6 +30,7 @@ Route::namespace('Api')->group(function() {
 
     Route::get('helloworld', 'AuthController@index');
     Route::post('logout', 'AuthController@logout');
+    Route::get('news', 'AuthController@news');
 
   });
 
